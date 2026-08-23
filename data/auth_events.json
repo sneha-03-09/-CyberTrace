@@ -1,0 +1,10 @@
+[
+    {
+        "timestamp": "2026-08-22T10:36:15",
+        "host": "WIN-PC-01",
+        "user": "analyst",
+        "event_type": "authentication",
+        "action": "credential_access_attempt",
+        "target": "local_account"
+    }
+]

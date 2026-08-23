@@ -1,0 +1,11 @@
+[
+    {
+        "timestamp": "2026-08-22T10:34:20",
+        "host": "WIN-PC-01",
+        "user": "analyst",
+        "event_type": "persistence_created",
+        "mechanism": "registry_run_key",
+        "location": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+        "value": "Updater"
+    }
+]

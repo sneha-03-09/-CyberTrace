@@ -1,0 +1,18 @@
+[
+    {
+        "timestamp": "2026-08-22T10:32:01",
+        "host": "WIN-PC-01",
+        "user": "analyst",
+        "event_type": "process_start",
+        "process": "invoice.exe",
+        "parent_process": "explorer.exe"
+    },
+    {
+        "timestamp": "2026-08-22T10:32:03",
+        "host": "WIN-PC-01",
+        "user": "analyst",
+        "event_type": "process_start",
+        "process": "powershell.exe",
+        "parent_process": "invoice.exe"
+    }
+]

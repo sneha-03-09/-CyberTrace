@@ -1,0 +1,18 @@
+[
+    {
+        "timestamp": "2026-08-22T10:31:58",
+        "host": "WIN-PC-01",
+        "user": "analyst",
+        "event_type": "file_created",
+        "file": "invoice.exe",
+        "path": "C:\\Users\\analyst\\Downloads\\invoice.exe"
+    },
+    {
+        "timestamp": "2026-08-22T10:32:20",
+        "host": "WIN-PC-01",
+        "user": "analyst",
+        "event_type": "file_deleted",
+        "file": "invoice.exe",
+        "path": "C:\\Users\\analyst\\Downloads\\invoice.exe"
+    }
+]

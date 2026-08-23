@@ -1,0 +1,11 @@
+[
+    {
+        "timestamp": "2026-08-22T10:32:10",
+        "host": "WIN-PC-01",
+        "process": "powershell.exe",
+        "event_type": "network_connection",
+        "destination_ip": "185.10.20.30",
+        "destination_port": 443,
+        "protocol": "TCP"
+    }
+]
