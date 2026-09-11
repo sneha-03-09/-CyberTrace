@@ -11,7 +11,7 @@ from incident_report import IncidentReport
 
 
 # ============================================================
-# CYBERTRACE
+# CYBERTRACE START
 # ============================================================
 
 print("\n==========================================")
@@ -126,7 +126,7 @@ for finding in incident["findings"]:
 
 
 # ============================================================
-# 7. CREATE CYBERTRACE AGENT TOOLS
+# 7. AGENT TOOLS
 # ============================================================
 
 tools = AgentTools(
@@ -135,7 +135,7 @@ tools = AgentTools(
 
 
 # ============================================================
-# 8. GEMINI AI AGENT
+# 8. GEMINI AGENT
 # ============================================================
 
 gemini_agent = GeminiAgent(
@@ -149,6 +149,22 @@ gemini_agent = GeminiAgent(
 
 query = "powershell.exe"
 
+ai_query = """
+Investigate the PowerShell activity.
+
+Determine:
+
+1. What process started PowerShell?
+2. What did PowerShell communicate with?
+3. Was persistence observed?
+4. Was credential-related activity observed?
+5. What is the likely attack chain?
+6. What evidence supports the conclusion?
+7. What evidence is missing?
+8. What should the analyst do next?
+"""
+
+
 print(
     "\n===== INVESTIGATION ====="
 )
@@ -159,7 +175,7 @@ print(
 
 
 # ============================================================
-# 10. GET DIRECT EVIDENCE
+# 10. DIRECT EVIDENCE
 # ============================================================
 
 direct_evidence = tools.search_evidence(
@@ -167,15 +183,18 @@ direct_evidence = tools.search_evidence(
 )
 
 print(
-    f"Events found: {len(direct_evidence)}"
+    f"Direct evidence: "
+    f"{len(direct_evidence)}"
 )
 
 
 # ============================================================
-# 11. INSPECT / FOLLOW RELATED EVENTS
+# 11. RELATED EVIDENCE
 # ============================================================
 
 related_evidence = []
+
+seen_related = set()
 
 for event in direct_evidence:
 
@@ -193,36 +212,56 @@ for event in direct_evidence:
             event_id
         )
 
-        if related:
-
-            if isinstance(related, list):
-
-                related_evidence.extend(
-                    related
-                )
-
-            else:
-
-                related_evidence.append(
-                    related
-                )
-
     except Exception as error:
 
         print(
-            f"Could not get related events for "
+            f"Related-event error for "
             f"{event_id}: {error}"
+        )
+
+        related = []
+
+    if not isinstance(
+        related,
+        list
+    ):
+        continue
+
+    for related_event in related:
+
+        if not isinstance(
+            related_event,
+            dict
+        ):
+            continue
+
+        related_id = related_event.get(
+            "id"
+        )
+
+        if not related_id:
+            continue
+
+        if related_id in seen_related:
+            continue
+
+        seen_related.add(
+            related_id
+        )
+
+        related_evidence.append(
+            related_event
         )
 
 
 print(
-    f"Related events found: "
+    f"Related evidence: "
     f"{len(related_evidence)}"
 )
 
 
 # ============================================================
-# 12. GET TIMELINE
+# 12. TIMELINE
 # ============================================================
 
 try:
@@ -231,7 +270,11 @@ try:
         tools.get_timeline()
     )
 
-except Exception:
+except Exception as error:
+
+    print(
+        f"Timeline error: {error}"
+    )
 
     timeline_events_for_report = (
         timeline_events
@@ -245,51 +288,121 @@ print(
 
 
 # ============================================================
-# 13. GEMINI INVESTIGATION
+# 13. GEMINI FAST INVESTIGATION
 # ============================================================
-
-print(
-    "\n===== GEMINI AGENT TEST =====\n"
-)
-
-
-ai_query = """
-Investigate the PowerShell activity.
-
-Determine:
-
-1. What started the PowerShell execution?
-2. What process spawned PowerShell?
-3. Did PowerShell communicate with an external IP?
-4. Was persistence created?
-5. Was credential-related activity observed?
-6. Reconstruct the complete attack chain.
-7. Give a final severity and confidence assessment.
-
-Use CyberTrace evidence and do not invent facts.
-"""
-
 
 ai_result = gemini_agent.investigate(
-    ai_query
+    question=ai_query,
+    query=query,
+    incident=incident,
+    relationships=relationships,
+    timeline=timeline_events_for_report
 )
 
 
 # ============================================================
-# 14. DISPLAY GEMINI ANALYSIS
+# 14. DISPLAY AI RESULT
 # ============================================================
 
 print(
-    "\n===== GEMINI AI ANALYSIS =====\n"
+    "\n===== GEMINI AI RESULT =====\n"
 )
 
 print(
-    ai_result
+    f"Summary:\n"
+    f"{ai_result.get('summary', 'N/A')}\n"
+)
+
+print(
+    f"Severity: "
+    f"{ai_result.get('severity', incident['severity'])}"
+)
+
+print(
+    f"Risk Score: "
+    f"{ai_result.get('risk_score', incident['score'])}"
+)
+
+print(
+    f"Confidence: "
+    f"{ai_result.get('confidence', 0)}"
 )
 
 
+print("\nEvidence IDs:")
+
+for evidence_id in ai_result.get(
+    "evidence_ids",
+    []
+):
+
+    print(
+        f"- {evidence_id}"
+    )
+
+
+print("\nAttack Chain:")
+
+for step in ai_result.get(
+    "attack_chain",
+    []
+):
+
+    print(
+        f"- {step}"
+    )
+
+
+print("\nObserved Facts:")
+
+for fact in ai_result.get(
+    "observed_facts",
+    []
+):
+
+    print(
+        f"- {fact}"
+    )
+
+
+print("\nInferences:")
+
+for inference in ai_result.get(
+    "inferences",
+    []
+):
+
+    print(
+        f"- {inference}"
+    )
+
+
+print("\nEvidence Gaps:")
+
+for gap in ai_result.get(
+    "evidence_gaps",
+    []
+):
+
+    print(
+        f"- {gap}"
+    )
+
+
+print("\nRecommended Actions:")
+
+for action in ai_result.get(
+    "recommended_actions",
+    []
+):
+
+    print(
+        f"- {action}"
+    )
+
+
 # ============================================================
-# 15. GENERATE INCIDENT REPORT
+# 15. INCIDENT REPORT
 # ============================================================
 
 report_generator = IncidentReport(
@@ -302,7 +415,11 @@ report_generator = IncidentReport(
 
     timeline_events=timeline_events_for_report,
 
-    ai_analysis=ai_result
+    ai_analysis=ai_result,
+
+    incident=incident,
+
+    relationships=relationships
 )
 
 
@@ -323,7 +440,7 @@ print(
 
 
 # ============================================================
-# 17. FINISHED
+# 17. COMPLETE
 # ============================================================
 
 print(
